@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>GMP 경진대회 본선 심사</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hahmlet:wght@600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+/* Layout: GMP 문서 표지 같은 관리 머리말 → 순위 요약 → 문제별 2팀 비교 (왼쪽 평가근거 · 오른쪽 현장 질문) */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --ink: #16202b;
+  --muted: #5a6675;
+  --line: #d6dce4;
+  --accent: #2c48b0;
+  --accent-soft: #e5eafa;
+  --c1: #2c48b0;
+  --c2: #5579d6;
+  --c3: #95afe9;
+  --amber: #8a5a00;
+  --amber-soft: #fff1cf;
+  --ok: #1d7a4c;
+  --font-display: "Hahmlet", "Noto Serif KR", "AppleMyungjo", serif;
+  --font-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f151c; --surface: #17212b; --ink: #e5eaf0; --muted: #9ba8b6; --line: #2b3744;
+    --accent: #93a9f4; --accent-soft: #1f2b4b; --c1: #93a9f4; --c2: #6582d8; --c3: #3e5aa6;
+    --amber: #f1b74e; --amber-soft: #3a2c10; --ok: #5fcf95; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f151c; --surface: #17212b; --ink: #e5eaf0; --muted: #9ba8b6; --line: #2b3744;
+  --accent: #93a9f4; --accent-soft: #1f2b4b; --c1: #93a9f4; --c2: #6582d8; --c3: #3e5aa6;
+  --amber: #f1b74e; --amber-soft: #3a2c10; --ok: #5fcf95; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--font-body);
+  font-size: 15px; line-height: 1.65; word-break: keep-all; overflow-wrap: anywhere;
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 64px;
+  display: grid; gap: 40px;
+}
+.wrap, .doc, .problem, #problems { grid-template-columns: minmax(0, 1fr); }
+.wrap > *, .doc > *, .problem > *, #problems > * { min-width: 0; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.3; }
+h1 { font-size: clamp(26px, 4vw, 36px); font-weight: 700; }
+h2 { font-size: 23px; font-weight: 700; }
+h3 { font-size: 19px; font-weight: 600; }
+p { margin: 0; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.label { font-size: 12px; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+
+/* 문서 관리 머리말 */
+.doc { display: grid; gap: 18px; }
+.ctrl {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--line); background: var(--surface); border-radius: 6px; overflow: hidden;
+}
+.ctrl div { padding: 10px 14px; border-right: 1px solid var(--line); display: grid; gap: 2px; min-width: 0; }
+.ctrl div:last-child { border-right: 0; }
+.ctrl b { font-weight: 500; font-size: 14px; }
+.status-draft { color: var(--amber); }
+.lede { max-width: 68ch; color: var(--muted); }
+.caveats { margin: 0; padding-left: 18px; color: var(--muted); font-size: 14px; display: grid; gap: 4px; max-width: 80ch; }
+
+nav.toc { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+nav.toc a, .toggle {
+  font: 500 13px var(--font-body); color: var(--ink); text-decoration: none;
+  border: 1px solid var(--line); background: var(--surface); padding: 6px 12px; border-radius: 999px; cursor: pointer;
+}
+nav.toc a:hover, .toggle:hover { border-color: var(--accent); color: var(--accent); }
+.toggle[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 순위 표 */
+.section-head { display: grid; gap: 6px; margin-bottom: 14px; }
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 760px; font-variant-numeric: tabular-nums; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: .03em; background: var(--bg); }
+td.num, th.num { text-align: center; font-family: var(--font-mono); }
+.rank { font-family: var(--font-mono); font-weight: 500; font-size: 15px; }
+.team-link { color: var(--ink); font-weight: 600; text-decoration: none; }
+.team-link:hover { color: var(--accent); }
+.bar { display: flex; height: 12px; border-radius: 3px; overflow: hidden; background: var(--accent-soft); width: 100%; min-width: 120px; }
+.bar span { display: block; height: 100%; }
+.bar .s1 { background: var(--c1); } .bar .s2 { background: var(--c2); } .bar .s3 { background: var(--c3); }
+.subtotal { display: grid; grid-template-columns: 42px 1fr; gap: 10px; align-items: center; }
+.subtotal b { font-family: var(--font-mono); font-weight: 500; font-size: 16px; }
+.chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+.chip.live { background: var(--amber-soft); color: var(--amber); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted); margin-top: 10px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+/* 문제별 섹션 */
+.problem { display: grid; gap: 18px; scroll-margin-top: 16px; }
+.problem-head { display: grid; gap: 6px; border-top: 2px solid var(--ink); padding-top: 14px; }
+.problem-head .label { color: var(--accent); }
+.verdict { max-width: 80ch; }
+.team { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; scroll-margin-top: 16px; }
+.team-top {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 18px;
+  padding: 16px 20px; border-bottom: 1px solid var(--line);
+}
+.team-top .score { margin-left: auto; display: flex; align-items: baseline; gap: 10px; }
+.team-top .score b { font-family: var(--font-mono); font-size: 26px; font-weight: 500; }
+.team-top .score small { color: var(--muted); font-family: var(--font-mono); }
+.team-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); }
+.col { padding: 18px 20px; display: grid; gap: 16px; align-content: start; min-width: 0; }
+.col + .col { border-left: 1px solid var(--line); background: color-mix(in srgb, var(--accent-soft) 35%, var(--surface)); }
+.crit { display: grid; gap: 6px; }
+.crit-head { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 10px; }
+.crit-head strong { font-size: 14px; }
+.crit-head .mono { font-size: 14px; }
+.meter { height: 6px; background: var(--accent-soft); border-radius: 3px; overflow: hidden; }
+.meter span { display: block; height: 100%; background: var(--accent); }
+.crit p { font-size: 14px; color: var(--ink); max-width: 68ch; }
+.memo { font-size: 14px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 12px; }
+.memo strong { color: var(--ink); font-weight: 600; }
+
+.qgroup { display: grid; gap: 10px; }
+.qgroup h4 { margin: 0; font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; gap: 8px; }
+.qgroup h4 .count { font-family: var(--font-mono); color: var(--muted); font-weight: 500; font-size: 12px; }
+ol.qs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+ol.qs li {
+  display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px;
+}
+ol.qs li.done { opacity: .55; }
+ol.qs li.done .q { text-decoration: line-through; text-decoration-color: var(--muted); }
+ol.qs input { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--accent); cursor: pointer; }
+.q { display: block; font-size: 14.5px; font-weight: 500; }
+.pts { display: block; font-size: 13px; color: var(--muted); margin-top: 4px; }
+ol.qs label { cursor: pointer; min-width: 0; }
+.pts b { color: var(--ok); font-weight: 600; }
+.ref { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted); margin-left: 4px; white-space: nowrap; }
+ol.qs.logic li { background: transparent; }
+
+/* 질문만 보기 */
+body.qonly .col.why { display: none; }
+body.qonly .team-body { grid-template-columns: minmax(0, 1fr); }
+body.qonly .col + .col { border-left: 0; }
+
+.common ol.qs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.rubric table { min-width: 560px; }
+.rubric td:first-child { font-weight: 600; white-space: nowrap; }
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 14px; }
+
+@media (max-width: 900px) {
+  .team-body { grid-template-columns: minmax(0, 1fr); }
+  .col + .col { border-left: 0; border-top: 1px solid var(--line); }
+  .common ol.qs { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .ctrl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ctrl div:nth-child(2) { border-right: 0; }
+  .ctrl div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+  .team-top .score { margin-left: 0; }
+  .col { padding: 16px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  ol.qs li { transition: opacity .2s; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="doc">
+    <div class="ctrl" aria-label="문서 관리 정보">
+      <div><span class="label">문서번호</span><b class="mono">EVAL-2026-GMP-01</b></div>
+      <div><span class="label">개정</span><b class="mono">Rev. 00</b></div>
+      <div><span class="label">작성일</span><b class="mono">2026-10-28</b></div>
+      <div><span class="label">상태</span><b class="status-draft">서면 평가 완료 · 발표 점수 미반영</b></div>
+    </div>
+    <h1>2026 바이오의약품 GMP 문제해결 경진대회<br>본선 심사 결과</h1>
+    <p class="lede">결과보고서 8건을 본선 심사기준으로 서면 평가했습니다. 발표 및 질의응답(30점)은 현장에서 채점하므로, 이 페이지에는 발표 때 던질 질문을 팀별로 정리했습니다.</p>
+    <ul class="caveats">
+      <li>점수는 문제 이해도·해결·실현가능성·전문성 및 완성도의 70점 만점 기준입니다.</li>
+      <li>4개 문제를 2팀씩 풀었습니다. 다른 문제를 푼 팀끼리의 비교는 같은 기준을 적용한 상대평가입니다.</li>
+      <li>출제 문제 원문이 자료에 없어, 각 보고서가 정리한 문제 상황을 기준으로 문제 이해도를 평가했습니다.</li>
+      <li>질문 옆 쪽수(p.)는 각 팀 결과보고서 PDF의 쪽 번호입니다. 질문 앞 체크 표시는 이 브라우저에만 저장됩니다.</li>
+    </ul>
+    <nav class="toc" aria-label="바로가기">
+      <a href="#rank">순위</a>
+      <a href="#p1">문제1 배지 변경</a>
+      <a href="#p2">문제2 품질문화</a>
+      <a href="#p3">문제3 무균 OOS</a>
+      <a href="#p4">문제4 QA·DI</a>
+      <a href="#common">공통 질문</a>
+      <a href="#rubric">심사기준</a>
+      <button type="button" class="toggle" id="qonly" aria-pressed="false">질문만 보기</button>
+    </nav>
+  </header>
+
+  <section id="rank">
+    <div class="section-head">
+      <h2>서면 평가 순위</h2>
+      <p class="lede">막대는 70점 만점에 대한 항목별 점수입니다. 발표 점수를 더하면 순위가 바뀔 수 있습니다.</p>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr>
+          <th class="num">순위</th><th>팀명</th><th>문제</th>
+          <th class="num">이해도<br>/20</th><th class="num">해결·실현<br>/25</th><th class="num">전문성·완성도<br>/25</th>
+          <th style="width:26%">서면 소계 /70</th><th class="num">발표·질의<br>/30</th>
+        </tr></thead>
+        <tbody id="rank-body"></tbody>
+      </table>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <span><i style="background:var(--c1)"></i>문제 이해도</span>
+      <span><i style="background:var(--c2)"></i>해결·실현가능성</span>
+      <span><i style="background:var(--c3)"></i>전문성 및 완성도</span>
+    </div>
+  </section>
+
+  <div id="problems" style="display:grid;gap:48px"></div>
+
+  <section id="common" class="common problem">
+    <div class="problem-head">
+      <span class="label">모든 팀</span>
+      <h2>공통 질문</h2>
+      <p class="verdict">8팀 모두 대책은 제시했지만 담당자, 자원, 증빙 기록까지 적은 팀은 드뭅니다. 어느 팀에나 물을 수 있는 운영 질문입니다.</p>
+    </div>
+    <ol class="qs" id="common-qs"></ol>
+  </section>
+
+  <section id="rubric" class="rubric problem">
+    <div class="problem-head">
+      <span class="label">참고</span>
+      <h2>본선 심사기준</h2>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead><tr><th>구분</th><th>세부 내용</th><th class="num">배점</th></tr></thead>
+        <tbody>
+          <tr><td>문제 이해도</td><td>배경 및 데이터 해석의 정확성 · 문제의 핵심 쟁점 및 원인 분석</td><td class="num">20</td></tr>
+          <tr><td>문제해결의 적절성 및 실현가능성</td><td>문제 해결 방안의 적절성 및 논리성 · 현장 적용 가능성 및 실용성</td><td class="num">25</td></tr>
+          <tr><td>전문성 및 완성도</td><td>GMP 및 가이드라인 인용의 정확성과 기술적 깊이 · 결과물의 완성도 및 구성</td><td class="num">25</td></tr>
+          <tr><td>발표 및 질의응답</td><td>발표 전달력 및 발표자료 구성 · 질의응답 대응 능력</td><td class="num">30</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>서면 평가 기준 자료: 「2026 바이오의약품 GMP 문제해결 경진대회 결과보고서(총 8팀)」. 발표 및 질의응답 점수는 현장 채점 후 합산합니다.</footer>
+</div>
+
+<script>
+const PROBLEMS = {
+  1: { title: "배지 변경 영향평가", sub: "동종 제대유래 MSC 치료제 · 배지 공급 6개월 후 중단 · Pilot 3회 데이터", verdict: "Re:Bio가 데이터 한계를 짚은 해석과 월별 실행계획에서 앞섭니다. 배지오마카세는 흐름은 명확하지만 허용기준 수치와 식약처 변경 대응이 비어 있습니다." },
+  2: { title: "제약바이오 품질문화", sub: "품질문화 정의 · 조직 활동 · 위반 사례와 개선", verdict: "바이오이오는 가이드라인 근거가, G수님 팀은 시제품까지 만든 창의성과 완성도가 강점입니다. 발표 점수에 따라 순위가 바뀔 수 있는 조합입니다." },
+  3: { title: "무균시험 OOS 출하 결정", sub: "유효기간 6시간 세포치료제 · 직접배양 양성 vs PCR 음성 · 환자 전처치 완료", verdict: "두 팀 모두 출하 불승인으로 결론냈고 차이는 2점입니다. 카피바라바이오는 정확성과 구조적 대책, 오예스는 인용 범위에서 앞섭니다." },
+  4: { title: "QA·품질시스템과 데이터 무결성", sub: "GMP 개념 · Product/System 영역 · DI 위반 사례", verdict: "GPS는 사례마다 ALCOA++ 판정과 4단계 CAPA까지 갖췄습니다. 큐리어스는 실제 경고장 사례를 썼지만 해결 제언이 1장에 그칩니다." }
+};
+
+const TEAMS = [
+  { id: "t6", name: "카피바라바이오", prob: 3, s: [19, 23, 23], rank: 1,
+    why: [
+      "별첨 시험성적서를 직접 해석했습니다(D28 직접배양 3일차 증균, D31 PCR 대조군 밴드, 생존율 90.7%, IFN-γ·LAMP1 역가). 6시간 안에 결정을 바꿀 수 있는 정보를 우선순위로 정리해 문제 데이터 활용이 가장 정밀합니다.",
+      "불승인 근거를 네 단계(무균 양성, 다른 시험으로 상쇄 불가, 시험실 오류 미입증, PCR 한계)로 세웠습니다. CAPA마다 담당과 완료조건을 정했고, 출하 가능성 확인 전 전처치를 막는 품질-임상 Readiness Gate는 이번 사태의 구조적 원인을 겨냥한 대책입니다.",
+      "21 CFR 610.12(f), 대한민국약전 무균시험법, PIC/S PI 012-3, USP <71>, ICH Q9(R1) Annex I.7 PHA를 조항 단위로 정확히 인용했습니다. 제조관리자와 품질부서 책임자의 역할도 정확히 구분했습니다. 'OOS(Out of Specificity)' 같은 사소한 오기가 있습니다."
+    ],
+    memo: "표와 흐름도 위주의 일관된 템플릿이고 장표마다 출처를 달았습니다. 정보량은 많지만 위계가 분명합니다.",
+    ops: [
+      { q: "전처치는 투여 며칠 전에 시작하는데, 그때는 D28 무균시험 결과도 없을 수 있습니다. 그러면 대부분 Amber가 되지 않나요? 실제 제조·임상 일정에서 Gate가 작동하나요?", pts: "공정 일정과 시험 일정을 맞춘 근거, Amber일 때의 처리 절차, 임상팀과의 합의 방식", ref: "p.26" },
+      { q: "근본원인을 배지 교체 SOP로 가정했는데, 조사 결과 다른 원인이면 CAPA는 어떻게 다시 짜나요? 조사 기간 동안 생산은 계속하나요?", pts: "잠정 조치, 생산 지속 여부를 누가 판단하는지, CAPA 재개방 절차", ref: "p.22–23" },
+      { q: "세포치료제의 수작업 개방 조작을 무균공정모의시험(APS)에 어떻게 반영하나요? 작업자 재자격평가 주기와 실패 시 조치는?", pts: "최악 조건의 개입 반영, 작업자별 자격 관리, 실패 시 작업 배제와 조사", ref: "p.23–24" },
+      { q: "같은 설비·작업자·자재를 공유한 배치가 이미 환자에게 투여됐다면, 환자 추적과 의료진 통보는 누가 하나요?", pts: "연관 배치 식별 방법, 의뢰자와의 연락 체계, 통보 기한", ref: "p.20" },
+      { q: "무균시험 Gate에 전자서명을 쓰려면 시스템 밸리데이션(CSV)이 필요합니다. 지금 종이 기록이라면 도입 전까지 어떻게 운영하나요?", pts: "종이·전자 혼용 기간의 관리, CSV 계획과 일정", ref: "p.27" },
+      { q: "균 동정 결과가 24~48시간 뒤 나오면 품질영향평가 문서는 누가 갱신하고, 의뢰자와 규제기관에는 언제 다시 알리나요?", pts: "문서 갱신 책임자, 보고 흐름과 기한", ref: "p.20, 25" }
+    ],
+    logic: [
+      "위험평가 도구로 FMEA 대신 PHA를 고른 이유는?",
+      "Readiness Gate가 '조건부 출하'로 오해되지 않게 어떻게 운영하나요?",
+      "6시간 안에 확보 가능한 정보로 결론이 바뀔 수 있는 시나리오가 있나요?"
+    ] },
+  { id: "t5", name: "오예스", prob: 3, s: [19, 22, 22], rank: 2,
+    why: [
+      "6시간 유효기간, 전처치를 마친 환자, PCR 음성과 직접배양 양성의 충돌이라는 딜레마를 정확히 구조화했습니다. 시험오류와 제품오염 가설, 시험오류를 인정하는 다섯 가지 요건도 정리했습니다.",
+      "출하 불승인 결론이 명확하고 10:43~16:43 시간대별 실행계획, 6시간 안에 불가능한 조사항목 분석, Phase I/II 조사계획, 원인별 CAPA와 PQS 개선 과제까지 체계적입니다. 다만 환자 구제 프로토콜에서 약물과 용량까지 제시해 제조소의 역할을 넘었고, '24시간 내 식약처 서면보고'처럼 근거가 불분명한 주장이 있습니다.",
+      "약사법, 첨단재생바이오법, 형법, 대한민국약전, FDA OOS, EU GMP Part IV 11.5, Annex 1·16, USP <1071>, Carvykti·NECC 사례까지 인용 범위가 가장 넓습니다. 그러나 ICH Q9 원문에 없는 해석('Fatal 위험은 수용 불가')을 조항처럼 제시했고, 제조관리자의 '독점적 출하권한' 표현은 품질부서 책임자의 출하승인을 정한 별표1 조항과 충돌합니다."
+    ],
+    memo: "아이콘과 색 체계는 좋지만 장표마다 글이 매우 많아 제한 시간 안에 전달하기 어려울 수 있습니다.",
+    ops: [
+      { q: "출하 불승인 결정을 문서로 남기고 서명하는 사람은 제조관리자인가요, 품질부서 책임자인가요? 당일 QA·QC·제조·임상 담당의 역할 분담은?", pts: "별표1상 출하승인 주체, 결정 문서와 서명 순서", ref: "p.15–16" },
+      { q: "같은 배양실·인큐베이터에서 같은 기간에 만든 다른 환자 배치가 있다면, 이미 투여된 것은 어떻게 추적하고 통보하나요?", pts: "연관 배치 식별, 투여 환자 추적, 의뢰자 통보", ref: "p.21" },
+      { q: "'24시간 내 식약처 서면 보고'의 근거 조항은 무엇인가요? 임상시험용의약품이라면 의뢰자와 제조소 중 누가 보고하나요?", pts: "근거 법령, 의뢰자·제조소 간 품질협약상 역할", ref: "p.15, 24" },
+      { q: "폐기하기 전에 조사용으로 무엇을 보존하나요(양성 배양물, 잔여 검체, 제품 일부)? 폐기 기록과 처리 방법은?", pts: "보존 대상과 기간, 폐기 기록, 의료폐기물 처리", ref: "p.15" },
+      { q: "백업 세포로 재제조할 때 원인조사가 끝나기 전에 같은 클린룸을 다시 쓰나요? 재가동 전 소독·환경모니터링 확인 기준은?", pts: "재가동 조건, 잠정 조치, QA 승인", ref: "p.23, 26" },
+      { q: "신속미생물시험 도입을 CAPA로 제시했는데, 밸리데이션과 변경 승인에 얼마나 걸리고 그 동안 출하 전략은 어떻게 하나요?", pts: "도입 일정, 변경관리, 임상계획 변경 필요성", ref: "p.27–29" }
+    ],
+    logic: [
+      "별표1상 출하승인은 품질부서 책임자인데, 제조관리자의 '독점적 출하권한'이라 한 근거는?",
+      "ICH Q9 원문 어디에 'Fatal 위험 수용 불가'가 있나요?",
+      "환자 임상 처치는 누구의 권한이며, 제조소는 어디까지 관여해야 하나요?"
+    ] },
+  { id: "t4", name: "바이오이오", prob: 2, s: [18, 20, 23], rank: 3,
+    why: [
+      "품질문화의 정의와 필요성(공급부족 사례 중 62%), ICH Q10 경영책임을 짚고, 7대 요인을 방향·현장참여·검토대응 3축으로 구조화했습니다. Backdating, Cherry-picking, Ranbaxy 사례를 ALCOA+와 조직문화로 연결해 문제 요구에 충실합니다.",
+      "Quality Discussion Day, 부서별 문화촉진자(월 4시간), 3단계 비보복 보고 경로, 공정한 책임 판단, 선행지표와 트리거(서명-작업 시간차, 감사추적 변경률, 재시험률, 내부신고 급감)를 제시해 현실적이고 측정 가능합니다. 목차에 있던 실행 로드맵이 일정·예산·목표치로 구체화되지 않았고 대책 자체는 정석적입니다.",
+      "ICH Q10 §2·§2.6, Q9(R1) §4.3, PIC/S PI 041-1 §6.3·9.6·9.8, EU GMP Ch.9·Annex 11, ISPE APQ Cultural Excellence, FDA QMM, 실제 경고장·Import Alert·DOJ 자료까지 조항 단위로 정확히 인용했습니다. 8팀 중 근거 제시가 가장 탄탄합니다."
+    ],
+    memo: "정돈된 화이트·네이비 디자인이고, 사례 장표의 숫자 강조(117일, 66-40)가 효과적입니다. 글 밀도는 다소 높습니다.",
+    ops: [
+      { q: "서명-작업 시간차나 감사추적 변경률은 eMBR·LIMS가 있어야 잴 수 있습니다. 종이 기록 공정에서는 어떻게 측정하나요? 임계치를 넘으면 일탈로 등록하나요?", pts: "데이터 출처, 임계치 값과 근거, 초과 시 처리 절차", ref: "p.29" },
+      { q: "문화촉진자의 월 4시간이 생산 일정과 겹치면 어느 쪽이 우선인가요? 활동 실적은 인사평가에 반영되나요?", pts: "업무시간 공식 배정, 평가 반영, 부재 시 대체자", ref: "p.14" },
+      { q: "문화촉진자가 현장 위반을 알게 되면 보고 의무가 있나요? 신뢰 관계와 보고 의무가 충돌할 때 기준은?", pts: "보고 의무 범위, 비보복 원칙과의 관계", ref: "p.14, 17" },
+      { q: "QDD에서 나온 개선과제는 CAPA 시스템에 등록하나요, 별도 목록으로 관리하나요? 종결은 누가 승인하나요?", pts: "CAPA 연계, QA 승인, 기한 관리", ref: "p.12" },
+      { q: "기밀 보고나 경영진 관련 우려가 접수되면 누가 조사하고, 처리 기한과 보고자 신원 보호는 어떻게 하나요?", pts: "독립 조사 주체, 처리 기한, 신원 보호 기록 관리", ref: "p.17" },
+      { q: "품질문화 지표를 경영검토에 어떤 주기와 형식으로 올리고, 도입 전 기준선은 어떻게 잡나요?", pts: "검토 주기, 기준선 설문·지표, 1년 뒤 목표치", ref: "p.15, 18" }
+    ],
+    logic: [
+      "트리거 임계치(예: 서명-작업 시간차)는 몇으로 정하고 근거는?",
+      "문화촉진자 활동이 형식화되지 않게 하는 장치는?",
+      "1년 로드맵으로 보면 무엇부터 시작하나요?"
+    ] },
+  { id: "t8", name: "GPS", prob: 4, s: [18, 21, 22], rank: 3,
+    why: [
+      "ICH Q10 PQS 모델로 Product(제조·품질시험)와 System(관리)을 나누고, 15개 세부 영역마다 실제 FDA 경고장 사례를 붙여 GMP 전 영역을 체계적으로 다뤘습니다.",
+      "DI 3사례(IPC 선택 기록, 미생물 OOS 미보고, 원본 폐기·덧쓰기)마다 ALCOA++ 10원칙별 영향도를 판정하고, 근본원인→시정→예방→효과성 지표의 4단계 CAPA와 위험기반 look-back, ELN·CSV까지 제시해 실무적입니다. 다만 DI 사례가 가상 시나리오이고, 효과성 목표 대부분이 '허용기준 충족'으로만 적혀 정량화가 부족합니다.",
+      "21 CFR 211 세부 조항, ICH Q1A·Q2·Q6·Q7~Q14, EU GMP, PIC/S, 2022~2026년 경고장 15건 이상을 인용해 근거의 폭이 넓습니다. 'Aloca++/ACLOA++' 같은 오탈자가 있고, QC 사례의 동시성 '영향 없음' 판정 등은 논쟁 여지가 있습니다."
+    ],
+    memo: "연두색 포인트의 미니멀 디자인이고 CAPA 4단 표가 한눈에 들어옵니다. 영역별 사례 장표는 글씨가 작습니다.",
+    ops: [
+      { q: "타정 중 질량 이탈이 생긴 구간의 정제는 따로 격리하나요? 구간 분리와 배치 처분은 누가 결정하나요?", pts: "이탈 구간 격리, 추가 샘플링, QA의 배치 처분", ref: "p.17–19" },
+      { q: "미생물 OOS 미보고가 수년간 이어졌다면 과거 출하 배치를 어디까지 거슬러 검토하나요? 회수와 규제기관 보고는 어떤 기준으로 판단하나요?", pts: "look-back 기간 산정 근거, 회수 판단 기준, 보고 절차", ref: "p.20–22" },
+      { q: "Logbook 불출·회수 통제를 실제로 어떻게 운영하나요? 일련번호, 쪽 번호, 연필 사용 금지, 정정 방법은?", pts: "불출 대장, 쪽 번호 관리, 문서 작성 원칙(GDP)에 따른 정정", ref: "p.23–25" },
+      { q: "ELN을 단계적으로 도입하는 동안 종이와 전자 기록이 섞이는 기간은 어떻게 관리하나요? CSV 범위는?", pts: "혼용 기간의 원본 정의, CSV 범위, 데이터 이관", ref: "p.25" },
+      { q: "작업자가 이탈값을 빼고 기록한 동기가 생산 압박이라면 교육 말고 어떤 대책이 있나요? 고의 위반의 인사 조치 기준은?", pts: "생산 목표·인센티브 재검토, 실수와 고의를 가르는 기준", ref: "p.17–19" },
+      { q: "CAPA 효과성 평가기간과 '허용기준'을 숫자로 말해 주세요.", pts: "평가기간(배치 수 또는 개월), 재발 건수 같은 수치 목표", ref: "p.19, 22, 25" }
+    ],
+    logic: [
+      "DI 사례를 실제 사례가 아닌 가상 시나리오로 구성한 이유는?",
+      "QC 사례에서 출입기록과 수기기록이 어긋나는데 동시성 영향이 없다고 본 근거는?",
+      "CAPA 효과성 '허용기준'의 구체 수치는?"
+    ] },
+  { id: "t2", name: "Re:Bio", prob: 1, s: [18, 22, 20], rank: 5,
+    why: [
+      "평균, 표준편차, 변화율을 직접 계산했습니다. '기존값이 단일 측정인지 불명확해 8.33% 증가로 단정하기 어렵다'는 데이터 한계와 '마커가 곧 기능은 아니다'라는 쟁점을 짚어 문제1의 핵심을 가장 정확히 파악했습니다.",
+      "'조건부 승인' 결론, Month 1~6 실행항목과 산출물, Plan B, 품질협약(90~180일 사전 서면통보, 감사권), NDA·DMF, 6~12개월 안전재고, 제3공급처, 전환 후 집중 모니터링까지 실무적입니다. 다만 2개월 안에 상업규모 PPQ 3회는 빠듯하고, 세포치료제에 가혹·가속시험을 적용한 근거가 약합니다. Risk-Based Testing 장표는 내용이 비어 있습니다.",
+      "ISCT 음성마커, 삼계통 분화능, 면역조절·노화, Scale-up 시 DO·pH·전단응력, 미공개 성분의 외래성 인자·잔류물 평가 등 기술 깊이가 좋습니다. 4-Layer Comparability 틀도 독창적입니다. 반면 ICH Q5E·Q9나 국내 규정 같은 조항 인용이 거의 없습니다."
+    ],
+    memo: "깔끔한 네이비 레이아웃이고 월별 실행계획 장표가 읽기 쉽습니다. Risk-Based Testing 장표는 빈 틀에 가깝습니다.",
+    ops: [
+      { q: "6~12개월분 버퍼 배지를 확보한다고 했는데, 배지 유효기간·냉장 보관 공간·비용을 감안하면 가능한가요? 기존 배지와 신규 배지 중 무엇을 비축하나요?", pts: "유효기간과 선입선출, 보관 조건, 비용 추정", ref: "p.13, 23" },
+      { q: "상업규모 PPQ 배치는 환자 투여용으로 출하하나요? PPQ에 쓰는 WCB 소모가 이후 공급에 주는 영향은?", pts: "PPQ 배치 처분 계획, 세포은행 재고 관리", ref: "p.21–22" },
+      { q: "PPQ 승인 기준은 누가 언제 사전 승인하나요? 1배치라도 기준을 벗어나면 일탈 처리와 '추가 1배치' 결정은 누가 하나요?", pts: "프로토콜 사전 승인(QA), 일탈 조사 후 추가 배치 판단", ref: "p.21–22" },
+      { q: "공급업체 현장 실사에서 실제로 무엇을 확인하나요? 동물유래 원료 증명, 원료 추적성, 공급사의 변경관리 기록, 재실사 주기는?", pts: "실사 체크리스트, 원료 기원 증명(TSE/BSE), 재평가 주기", ref: "p.13, 19" },
+      { q: "AI 모니터링 도구는 GMP 컴퓨터화 시스템으로 밸리데이션하나요? Red 알람은 일탈 시스템에 자동 등록되나요?", pts: "CSV 범위, 알람과 일탈 절차 연계, 기록 보존", ref: "p.24–25" },
+      { q: "6개월 동안 추가 Pilot, 확장 특성평가, Engineering Run, PPQ, 안정성시험을 동시에 하면 QC 시험 용량이 감당되나요?", pts: "시험 일정표, 외부 위탁 여부, 우선순위", ref: "p.18–22" }
+    ],
+    logic: [
+      "상업규모 PPQ 3회를 Month 4~5에 끝낼 수 있는 근거(배치 소요기간)는?",
+      "세포치료제에서 가혹·가속시험은 어떤 의미가 있나요?",
+      "AI 신호등 체계의 Yellow/Red 기준값은 어떻게 정하나요?"
+    ] },
+  { id: "t3", name: "Gㅛ수님 Mㅏ음에 Pㅏ고들조", prob: 2, s: [17, 21, 20], rank: 6,
+    why: [
+      "GMP 위반 통계와 정기감시 결과로 문제를 '규정의 부재가 아닌 실행의 문제'로 다시 정의했습니다. 7대 요인 기반 Fishbone과 5Whys로 '문제를 말하기 어려운 환경'을 근본원인으로 끌어낸 흐름이 논리적입니다. 데이터 무결성 같은 실제 위반 사례 분석은 상대적으로 약합니다.",
+      "Q-Buddy(음성 AI 질의, 위험도 분류, 담당자 연결, QA 검토 대시보드)를 실제로 동작하는 시제품으로 만들고 환자 목소리 전달, 게임 요소, Quality Board, 비처벌 칭찬제도, 자기 해결안의 FMEA와 효과 지표까지 제시했습니다. 창의성은 최상위입니다. 하지만 클린룸 안 음성기기 사용성, AI 오분류 책임, 보안, 비용·일정 계획이 없고 시책이 많아 우선순위가 흐립니다.",
+      "URS와 DQ·IQ·OQ·PQ를 실제 GMP 문서 형식으로 작성해 실무 이해를 보여줬습니다. 그러나 ICH Q10, PIC/S, FDA QMM 같은 품질문화 가이드라인 인용이 거의 없고 Annex 11·Part 11 관점도 없습니다. 적격성 문서에 오탈자가 있습니다."
+    ],
+    memo: "시제품 화면, 시연 영상(QR), '품질문화를 배양하다' 배지 조성표 마무리까지 전달력과 기억에 남는 구성이 8팀 중 가장 강합니다.",
+    ops: [
+      { q: "Grade A/B 무균 구역에서도 Q-Buddy 단말을 쓰나요? 단말 소독과 입자 발생, 무균복과 마스크를 쓴 상태의 음성 인식률은 확인했나요?", pts: "구역별 설치 위치, 소독 절차, 청정도 영향 평가, 인식률 데이터", ref: "p.10, 14" },
+      { q: "Q-Buddy에 남긴 보고는 공식 일탈 보고를 대신하나요? AI가 '경미'로 분류해 일탈로 등록되지 않은 기록은 어떤 의미인가요?", pts: "일탈 SOP와의 관계, 일탈 등록 판단은 사람(QA)이 한다는 원칙", ref: "p.16, 19" },
+      { q: "QA 검토 대시보드에 '삭제'와 '전체 삭제' 버튼이 보입니다. 보고 기록을 누가 지울 수 있고, 감사추적은 남나요?", pts: "물리적 삭제 금지와 무효 처리, 권한 분리, 감사추적", ref: "p.16" },
+      { q: "AI가 안내하는 SOP 번호와 내용은 SOP가 개정되면 어떻게 갱신되나요? 구버전 SOP를 안내할 위험은 어떻게 막나요?", pts: "문서관리 시스템 연동, 변경관리 포함, 정기 검증", ref: "p.16" },
+      { q: "AI가 담당자를 연결하면 QA와 전문위원에게 요청이 몰릴 텐데, 야간·주말 교대조 대응과 응답 시간 기준은?", pts: "응답 시간 기준, 대체 담당자, 업무 부하 관리", ref: "p.15" },
+      { q: "비처벌 원칙은 고의 위반이나 반복 위반에도 적용되나요? 자진 보고와 책임 조치를 가르는 기준은?", pts: "실수, 위험 행동, 고의 위반을 구분하는 문서화된 기준", ref: "p.23" }
+    ],
+    logic: [
+      "Q-Buddy가 GMP 컴퓨터화 시스템이라면 Annex 11·Part 11과 데이터 무결성은 어떻게 보장하나요?",
+      "AI가 위험도를 잘못 분류해 보고가 늦어지면 책임은 누구에게 있나요?",
+      "도입 6개월 뒤 무엇으로 효과를 판단하나요(목표치)?"
+    ] },
+  { id: "t1", name: "배지오마카세", prob: 1, s: [16, 19, 18], rank: 7,
+    why: [
+      "Pilot 3회에서 Cell Yield −4.2%, PDT +8.3%, Potency 감소 경향, 공급사 미흡 항목(품질협약, 변경통보, 조성정보)을 정확히 짚었습니다. 다만 기존값이 단일값인지, 공정 변동범위는 어떤지 같은 데이터 한계와 통계적 해석이 약하고, 표면마커 외 기능에 대한 문제 제기는 일반론 수준입니다.",
+      "4개 핵심 조치에서 Gate 1~3 승인기준, 0~6개월 실행계획, 적용 후 모니터링으로 이어지는 흐름이 명확하고 Bridge·Safety stock도 언급했습니다. 그러나 허용기준 수치가 없고, 기준 미충족 시 대안과 대체 공급선, 식약처 변경 신고·허가 대응이 빠졌습니다. 6개월 안에 상업규모 검증까지 끝낼 일정 근거도 부족합니다.",
+      "ICH Q10 2.7, ICH Q5E, 「의약품 등의 안전에 관한 규칙」 별표1 변경관리, FMEA(RPN)를 적용했습니다. Q5E를 세포치료제에 참고로 쓴 판단은 적절하지만 외래성 인자, 동물유래 성분, ISCT 기준 같은 세포치료제 특화 깊이는 부족합니다."
+    ],
+    memo: "블루 톤의 일관된 디자인으로 STEP 구분이 명확합니다. 간지 비중이 높고 일부 장표는 정보가 적습니다.",
+    ops: [
+      { q: "배지 변경을 사내 변경관리에서 어떤 등급으로 분류하고, 변경요청부터 효과성 확인까지 누가 어떤 문서로 처리하나요? 식약처 변경 신고·허가 대상인지는 누가 판단하나요?", pts: "변경 등급, QA 승인, 허가사항 영향 검토와 일정 반영", ref: "p.16, 25" },
+      { q: "기존 배지 잔량으로 몇 배치를 더 만들 수 있나요? Gate 3 완료가 늦어지면 생산 공백은 어떻게 막나요?", pts: "잔여 재고와 유효기간 계산, 배치 계획, 지연 시 대응", ref: "p.26" },
+      { q: "신규 배지 입고 때 공급사 CoA 외에 자체 시험은 무엇을 하나요(무균, 엔도톡신, 성장지지능 등)? CoA를 언제부터 신뢰하나요?", pts: "입고시험 항목, 초기 로트 전항목 시험 후 축소 기준", ref: "p.22" },
+      { q: "상업규모 검증 배치는 환자 투여용으로 출하하나요, 시험용인가요? 출하한다면 어떤 조건을 두나요?", pts: "검증 배치 처분 계획, 출하 조건, 안정성 데이터", ref: "p.23" },
+      { q: "두 배지를 함께 쓰는 기간에 혼동과 혼입은 어떻게 막나요? 자재코드, 보관 구역, 제조기록서 개정 시점은?", pts: "자재코드 분리, 표시와 구역, 제조기록서 버전 관리, 교육 기록", ref: "p.27" },
+      { q: "적용 후 집중 모니터링은 몇 배치 동안, 어떤 관리한계로 운영하고 언제 끝내나요?", pts: "배치 수, 관리한계, 종료 기준, 이탈 시 일탈 처리", ref: "p.28" }
+    ],
+    logic: [
+      "기존 배지 값(4.8×10⁸, 24h)은 단일 배치값인가요, 과거 평균인가요? 허용범위는 어떻게 정하나요?",
+      "6개월 안에 Gate 3(상업규모)까지 끝낼 배치 수와 일정 근거는?",
+      "배지 변경을 식약처 변경 신고·허가 측면에서 어떻게 검토했나요?"
+    ] },
+  { id: "t7", name: "Q-rious(큐리어스)", prob: 4, s: [15, 15, 18], rank: 8,
+    why: [
+      "GMP 배경, Product/System 구분, DI 사례 3관점이라는 요구 구조는 갖췄지만 대부분 개념 설명이고, 시스템 결함과 재발 방지라는 핵심 분석은 얕습니다.",
+      "실제 FDA 경고장 3건(Fresenius Kabi, Shimoga, Missouri Analytical)을 ALCOA+ 위반으로 연결한 점은 좋습니다. 그러나 사례별 근본원인과 CAPA가 없고 제언이 1장(일반론 4줄)에 그쳐 해결방안 비중이 8팀 중 가장 낮습니다.",
+      "21 CFR 211 조항, PIC/S PI 041-1, EU Annex 11 조항 연결은 성실합니다. 다만 원료의약품용 ICH Q7을 혈액백(Fresenius) 사례 근거로 쓰는 등 적용 범위가 맞지 않고, 'IPC(International Council for Harmonisation)' 약어 오류가 있습니다."
+    ],
+    memo: "어두운 헤더 템플릿이 깔끔하고, 경고장 내용을 재구성한 가상 화면이 이해를 돕습니다. 후반부 해결 제언 분량이 적습니다.",
+    ops: [
+      { q: "세 사례를 자사 자체점검 체크리스트로 바꾼다면 어떤 항목을 넣겠나요?", pts: "감사추적 검토, 권한 설정, 미보고 injection 확인 같은 구체 항목", ref: "p.25" },
+      { q: "감사추적을 '주기적으로 검토'한다고 했는데, 누가 어떤 주기로, 어떤 시스템부터 보나요? 출하 전 검토와 정기 검토를 구분하나요?", pts: "위험기반 우선순위, 검토자 독립성, 검토 기록 양식", ref: "p.21, 25" },
+      { q: "분석자 권한은 어떻게 나누고, 공용 계정과 퇴사자 계정은 어떤 주기로 점검하나요? 시스템 관리자는 QC와 분리돼 있나요?", pts: "권한 매트릭스, 정기 권한 검토, 관리자 독립성", ref: "p.22–23" },
+      { q: "TNTC 같은 비정량 결과는 SOP에서 어떻게 기록하고 판정하게 해야 하나요? 결과를 무효로 할 수 있는 사람은?", pts: "기록 규칙, 판정 기준, 무효화 승인권(QA)", ref: "p.18–19" },
+      { q: "모든 injection이 결과에 들어갔는지 QA는 어떻게 확인하나요? 시퀀스와 크로마토그램 전량을 보나요, 요약 보고서만 보나요?", pts: "시퀀스 대조, 원자료 검토 범위", ref: "p.20–21" },
+      { q: "종이와 전자 기록이 섞인 현장에서 무엇을 원본(raw data)으로 정하나요?", pts: "원본 정의 SOP, 인쇄본과 전자 원본의 관계", ref: "p.16" }
+    ],
+    logic: [
+      "Fresenius 사례에서 TNTC를 수치로 바꾸게 만든 시스템 원인과 CAPA는?",
+      "ICH Q7을 근거로 든 이유(적용 대상)는?",
+      "세 사례 중 가장 먼저 도입할 예방조치 하나를 고른다면?"
+    ] }
+];
+
+const COMMON = [
+  { q: "제안한 조치마다 담당 부서와 승인권자(QA)를 정했나요?", pts: "조치별 책임자, QA의 독립 승인 지점" },
+  { q: "실행에 드는 인력, 비용, 기간을 추정해 봤나요? 가장 먼저 할 일 하나는?", pts: "자원 계획과 우선순위" },
+  { q: "식약처 실사관이 이 계획의 이행을 확인한다면 어떤 기록을 보여주겠나요?", pts: "변경관리서, CAPA 기록, 교육 기록 같은 증빙 문서" }
+];
+
+const LABELS = ["문제 이해도", "해결·실현가능성", "전문성 및 완성도"];
+const MAX = [20, 25, 25];
+const sum = a => a.reduce((x, y) => x + y, 0);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+let asked = {};
+try { asked = JSON.parse(localStorage.getItem("gmp-eval-asked") || "{}") || {}; } catch (e) { asked = {}; }
+function saveAsked() { try { localStorage.setItem("gmp-eval-asked", JSON.stringify(asked)); } catch (e) {} }
+
+// 순위 표
+document.getElementById("rank-body").innerHTML = TEAMS.map(t => {
+  const total = sum(t.s);
+  const segs = t.s.map((v, i) => `<span class="s${i + 1}" style="width:${(v / 70) * 100}%" title="${LABELS[i]} ${v}"></span>`).join("");
+  return `<tr>
+    <td class="num rank">${t.rank}</td>
+    <td><a class="team-link" href="#${t.id}">${esc(t.name)}</a></td>
+    <td>문제${t.prob} · ${PROBLEMS[t.prob].title}</td>
+    ${t.s.map(v => `<td class="num">${v}</td>`).join("")}
+    <td><div class="subtotal"><b>${total}</b><div class="bar" role="img" aria-label="${total}점 / 70점">${segs}</div></div></td>
+    <td class="num"><span class="chip live">현장 평가</span></td>
+  </tr>`;
+}).join("");
+
+function qItem(key, q, pts, ref) {
+  const done = !!asked[key];
+  return `<li class="${done ? "done" : ""}">
+    <input type="checkbox" id="${key}" data-key="${key}" ${done ? "checked" : ""} aria-label="질문 확인 표시">
+    <label for="${key}"><span class="q">${esc(q)}${ref ? `<span class="ref">${esc(ref)}</span>` : ""}</span>
+    ${pts ? `<span class="pts"><b>확인 포인트</b> ${esc(pts)}</span>` : ""}</label>
+  </li>`;
+}
+
+// 문제별 섹션
+document.getElementById("problems").innerHTML = [1, 2, 3, 4].map(p => {
+  const P = PROBLEMS[p];
+  const teams = TEAMS.filter(t => t.prob === p).sort((a, b) => a.rank - b.rank);
+  return `<section class="problem" id="p${p}">
+    <div class="problem-head">
+      <span class="label">문제 ${p}</span>
+      <h2>${P.title}</h2>
+      <p class="lede">${esc(P.sub)}</p>
+      <p class="verdict">${esc(P.verdict)}</p>
+    </div>
+    ${teams.map(t => `<article class="team" id="${t.id}">
+      <div class="team-top">
+        <h3>${esc(t.name)}</h3>
+        <span class="label">서면 ${t.rank}위</span>
+        <div class="score"><b>${sum(t.s)}</b><small>/ 70</small><span class="chip live">발표 30점 현장 평가</span></div>
+      </div>
+      <div class="team-body">
+        <div class="col why">
+          ${t.s.map((v, i) => `<div class="crit">
+            <div class="crit-head"><strong>${LABELS[i]}</strong><span class="mono">${v} / ${MAX[i]}</span></div>
+            <div class="meter"><span style="width:${(v / MAX[i]) * 100}%"></span></div>
+            <p>${esc(t.why[i])}</p>
+          </div>`).join("")}
+          <p class="memo"><strong>발표자료 구성(참고)</strong> ${esc(t.memo)}</p>
+        </div>
+        <div class="col">
+          <div class="qgroup">
+            <h4>GMP 운영 관점 질문 <span class="count">${t.ops.length}개</span></h4>
+            <ol class="qs">${t.ops.map((o, i) => qItem(`${t.id}-o${i}`, o.q, o.pts, o.ref)).join("")}</ol>
+          </div>
+          <div class="qgroup">
+            <h4>논리·근거 확인 질문 <span class="count">${t.logic.length}개</span></h4>
+            <ol class="qs logic">${t.logic.map((q, i) => qItem(`${t.id}-l${i}`, q, "", "")).join("")}</ol>
+          </div>
+        </div>
+      </div>
+    </article>`).join("")}
+  </section>`;
+}).join("");
+
+document.getElementById("common-qs").innerHTML = COMMON.map((c, i) => qItem(`c${i}`, c.q, c.pts, "")).join("");
+
+document.addEventListener("change", e => {
+  const el = e.target;
+  if (!el.matches || !el.matches("input[data-key]")) return;
+  asked[el.dataset.key] = el.checked;
+  if (!el.checked) delete asked[el.dataset.key];
+  el.closest("li").classList.toggle("done", el.checked);
+  saveAsked();
+});
+
+const toggle = document.getElementById("qonly");
+toggle.addEventListener("click", () => {
+  const on = toggle.getAttribute("aria-pressed") !== "true";
+  toggle.setAttribute("aria-pressed", String(on));
+  document.body.classList.toggle("qonly", on);
+});
+
+if (location.hash) {
+  const target = document.getElementById(location.hash.slice(1));
+  if (target) target.scrollIntoView();
+}
+</script>
+</body>
+</html>
